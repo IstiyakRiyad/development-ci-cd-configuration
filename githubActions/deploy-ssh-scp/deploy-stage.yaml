@@ -1,0 +1,43 @@
+name: Deploy to AWS EC2
+
+# workflow_dispatch is for manual running workflows.
+# It will also trigger for push to main branch
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "main"
+
+# Environment Variable which will be visible on github actions workflows
+env:
+  AWS_EC2_USER: ubuntu
+  AWS_EC2_URL: api.englishmojabd.com
+  AWS_EC2_PATH: /home/ubuntu/server
+  RESTART_FILE_PATH: restart_service.sh
+
+# Jobs are set of operation that will be performed on github actions
+jobs:
+  # This is the deploy job
+  deploy:
+    runs-on: ubuntu-latest  # Envrironment to run the workflow
+    steps:
+      # This will setup the github repository on the runner.
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      # Setting the SSH keys to the runner
+      - name: Setting SSH Keys
+        run: |
+          install -m 600 -D /dev/null ~/.ssh/id_rsa
+          echo "${{secrets.AWS_EC2_SSH_KEY}}" > ~/.ssh/id_rsa
+          ssh-keyscan -H ${{env.AWS_EC2_URL}} > ~/.ssh/known_hosts
+
+      # Copy all the github files to the remote machine in a specific folder
+      - name: Copy all files to EC2 
+        run: |
+          scp -r ./* ${{ env.AWS_EC2_USER }}@${{ env.AWS_EC2_URL }}:${{env.AWS_EC2_PATH}}
+
+      # Run the remote host command for setup
+      - name: Restart Node Service 
+        run: |
+          ssh ${{ env.AWS_EC2_USER }}@${{ env.AWS_EC2_URL }} 'bash -s' < ${{env.RESTART_FILE_PATH}}
