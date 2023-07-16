@@ -1,0 +1,22 @@
+name: Build Typescript 
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install NodeJS 
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x.x
+          cache: npm
+
+      - name: Install Packages 
+        run: npm ci
+				
