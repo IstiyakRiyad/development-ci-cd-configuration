@@ -19,4 +19,10 @@ jobs:
 
       - name: Install Packages 
         run: npm ci
+
+      - name: Build Project
+        run: npm run build 
+
+      - name: Testing the apis
+        run: npm test
 				
